@@ -14,6 +14,7 @@ The calculator runs in your browser with no account or installation required.
 - **Kill-plan comparisons:** Compare up to 10 planned kill counts, explore the probability chart, and select probability milestones to find a kill goal.
 - **Dry-streak statistics:** See the chance of going your entered kill count without a drop and the expected number of drops over that hunt.
 - **Custom inputs:** Enter your own per-kill drop rate and pet threshold for a custom calculation.
+- **Revenant Spirit Calc:** Select your highest unlocked revenant pet to compare per-kill Spirit odds and artwork for all 17 revenant variants, including all four goblin levels.
 - **Clear target restrictions:** See drops from every scenario, including hard-mode-only items. Targets without a supported numerical model show an explanation.
 - **Saved preferences and themes:** Return to your previous selections in the same browser, choose a visual theme, or reset your inputs. The layout adapts to desktop and mobile screens.
 
@@ -39,6 +40,7 @@ This is a selected-drop calculator, not a full collection-log completion simulat
 - [Wiki sources and curated corrections](SOURCES.md)
 - [Drop coverage and audit notes](DROP-AUDIT.md)
 - [Boss artwork credits](public/bosses/CREDITS.md)
+- [Revenant artwork credits](public/revenants/CREDITS.md)
 
 ## Local development
 

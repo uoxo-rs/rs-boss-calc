@@ -1,22 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { readFile } from 'node:fs/promises'
-import ts from 'typescript'
+import { loadComponent } from './helpers/load-component.mjs'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { defaultPreferences } from '../src/preferences.ts'
 
 // Render the real component so a correct helper cannot mask an outdated select.
-const source = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8')
-const compiled = ts.transpileModule(source, {
-  compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
-}).outputText.replace(/^import ['"][^'"]+\.css['"];?$/gm, '').replace(/^(import .+? from )(['"])([^'"]+)\2;?$/gm, (_, prefix, quote, specifier) => {
-  const resolved = specifier.startsWith('.')
-    ? new URL(`../src/${specifier.slice(2)}.ts`, import.meta.url).href
-    : import.meta.resolve(specifier)
-  return `${prefix}${quote}${resolved}${quote};`
-})
-const { default: App } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`)
+const App = await loadComponent(new URL('../src/App.tsx', import.meta.url))
 
 function render(preferences) {
   const previousWindow = globalThis.window

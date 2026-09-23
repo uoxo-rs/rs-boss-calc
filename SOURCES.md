@@ -8,6 +8,8 @@ The follow-up [unique-drop audit](DROP-AUDIT.md) rechecked all 62 included bosse
 
 ## Source checks and corrections
 
+- **Revenant Spirit calculator (verified September 23, 2026):** [Drop chance](https://runescape.wiki/w/Revenant_Spirit#Drop_chance) and [the Wiki calculator module](https://runescape.wiki/w/Module:Revpet) define `1 / floor((petsOwned + 1) * 250 * 150 / combatLevel)`. The selector maps None to 0 and each successive pet to 1–14; Dragon completes the sequence, so no further unlock odds are shown. The module supplies all 17 combat levels, including goblins at 16, 19, 22, and 28. [Revenant Pet](https://runescape.wiki/w/Revenant_Pet) documents the ordered appearances. The input is the highest unlocked pet, not the currently displayed appearance. An unredeemed spirit prevents another drop. This calculator uses only the published pet formula, with no general revenant loot boosts or kill-count thresholds.
+
 - **Giant Mole:** the [boss page](https://runescape.wiki/w/Giant_mole) gives the unboosted normal-mode dragon 2h sword rate as 1/520; the collection module says 1/502. Use 1/520. Hard mode is 2/520. Clingy mole uses 5/520 and 10/520 for members. Falador shield boosts are excluded.
 - **Hermod:** the [boss page](https://runescape.wiki/w/Hermod,_the_Spirit_of_War) gives plates as 1/10, or 1/9 with tier 3 luck. Use the unboosted 1/10, despite 1/9 in the collection module. Drumsticks use a different mitigation system; they are listed without a numerical preset.
 - **AoD:** the [boss page](https://runescape.wiki/w/Nex,_Angel_of_Death) gives any chest as 1/1024, rather than the collection module's 1/1000. Wand/core rates scale with group size, and codex probability includes failing that roll. The UI models groups of 1–7.
