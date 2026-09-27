@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import RevenantPetSelect from "./RevenantPetSelect";
+import RevenantRoutePlanner from "./RevenantRoutePlanner";
+import { readSharedRevenantRoute } from "./revenant-route";
 import {
   readRevenantPet,
   revenantDenominator,
@@ -12,7 +14,15 @@ import {
 const assetBase = import.meta.env?.BASE_URL ?? "/";
 
 export default function RevenantSpiritCalc() {
-  const [petsOwned, setPetsOwned] = useState(readRevenantPet);
+  const [shared] = useState(readSharedRevenantRoute);
+  const [petsOwned, setPetsOwned] = useState(() => shared.status === "valid" ? shared.petsOwned : readRevenantPet());
+  useEffect(() => saveRevenantPet(petsOwned), [petsOwned]);
+  useEffect(() => {
+    if (shared.status !== "none") {
+      // Consume an imported link once so refreshing preserves subsequent edits.
+      window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}#revenant-spirit`);
+    }
+  }, [shared]);
   const nextPet = revenantPets[petsOwned + 1];
 
   return (
@@ -22,7 +32,7 @@ export default function RevenantSpiritCalc() {
         <h1>Revenant Spirit Calculator</h1>
         <p>
           Choose your current pet to see your Revenant Spirit drop chance from
-          every revenant.
+          every revenant, or build a route to calculate your combined chance.
         </p>
       </div>
       <section className="panel revenant-setup" aria-label="Your revenant pet">
@@ -32,10 +42,7 @@ export default function RevenantSpiritCalc() {
           </label>
           <RevenantPetSelect
             value={petsOwned}
-            onChange={(selected) => {
-              setPetsOwned(selected);
-              saveRevenantPet(selected);
-            }}
+            onChange={setPetsOwned}
           />
           <p className="field-help" id="revenant-pet-help">
             Select your highest unlocked pet, even if you use an earlier
@@ -56,6 +63,7 @@ export default function RevenantSpiritCalc() {
           </p>
         </div>
       </section>
+      <RevenantRoutePlanner petsOwned={petsOwned} shared={shared} />
       <section
         className="revenant-results"
         aria-labelledby="revenant-results-title"

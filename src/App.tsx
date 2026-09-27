@@ -29,14 +29,15 @@ const planColors = [
 ];
 const assetBase = import.meta.env?.BASE_URL ?? "/";
 function App() {
-  const [revenantTab, setRevenantTab] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      window.location?.hash === "#revenant-spirit",
-  );
+  const [{ hash, revision }, setLocation] = useState(() => ({
+    hash: typeof window !== "undefined" ? window.location?.hash ?? "" : "",
+    revision: 0,
+  }));
+  const revenantTab = hash.split("?")[0] === "#revenant-spirit";
   useEffect(() => {
+    // Imported links are consumed; reopening the same link must load it again.
     const onHashChange = () =>
-      setRevenantTab(window.location.hash === "#revenant-spirit");
+      setLocation((previous) => ({ hash: window.location.hash, revision: previous.revision + 1 }));
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
@@ -222,7 +223,7 @@ function App() {
       </header>
       <main id={revenantTab ? "revenant-spirit" : "calculator"}>
         {revenantTab ? (
-          <RevenantSpiritCalc />
+          <RevenantSpiritCalc key={revision} />
         ) : (
           <>
             <div className="intro">
