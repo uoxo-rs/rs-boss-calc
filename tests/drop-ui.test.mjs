@@ -54,7 +54,7 @@ test('unknown-rate selection renders an explanation without odds or a false mode
 
 test('a first visit still begins with no boss selected', () => {
   const html = render(null)
-  assert.match(html, /<option value="-1" selected="">Select a boss/)
+  assert.match(html, /id="boss" role="combobox"[^>]*aria-expanded="false"[^>]*value=""/)
   assert.match(html, /Choose your next hunt/)
   assert.doesNotMatch(html, /id="drop"/)
 })

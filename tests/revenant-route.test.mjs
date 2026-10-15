@@ -42,9 +42,18 @@ test('selected pet stage and all four goblin variants use their own rounded rate
     1 - [7031, 5921, 5113, 4017].reduce((miss, denominator) => miss * (1 - 1 / denominator), 1))
 })
 
+test('overall fraction weights every kill and repeated stop, independent of planned laps', () => {
+  const entries = [{ level: 126, kills: 2 }, { level: 119, kills: 1 }, { level: 126, kills: 1 }]
+  const expected = 4 / (3 / 297 + 1 / 315)
+  close(revenantRouteOdds(0, entries, 1).overallDenominator, expected)
+  close(revenantRouteOdds(0, entries, 100).overallDenominator, expected)
+  close(revenantRouteOdds(0, [{ level: 126, kills: 20 }], 1).overallDenominator, 297)
+  close(revenantRouteOdds(13, entries, 1).overallDenominator, 4 / (3 / 4166 + 1 / 4411))
+})
+
 test('empty routes and completed collections cannot suggest a further unlock', () => {
   assert.deepEqual(revenantRouteOdds(0, [], 100), {
-    killsPerLap: 0, totalKills: 0, chancePerLap: 0, chanceForPlan: 0,
+    killsPerLap: 0, totalKills: 0, overallDenominator: null, chancePerLap: 0, chanceForPlan: 0,
   })
   assert.equal(revenantRouteOdds(14, example, 100), null)
   assert.equal(revenantRouteOdds(14, [], 100), null)

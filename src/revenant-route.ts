@@ -41,12 +41,14 @@ export function revenantRouteOdds(
   // Validate the pet stage even when the route is empty.
   const complete = revenantDenominator(petsOwned, revenants[0].level) === null;
   let killsPerLap = 0;
+  let expectedSpiritsPerLap = 0;
   let logMissPerLap = 0;
   for (const { level, kills } of entries) {
     if (!validCount(kills)) throw new RangeError("Enter valid kills per lap.");
     const denominator = revenantDenominator(petsOwned, level);
     killsPerLap += kills;
     if (denominator !== null) {
+      expectedSpiritsPerLap += kills / denominator;
       logMissPerLap += kills * Math.log1p(-1 / denominator);
     }
   }
@@ -60,6 +62,8 @@ export function revenantRouteOdds(
   return {
     killsPerLap,
     totalKills,
+    // Average the per-kill probabilities, weighted by the route's quantities.
+    overallDenominator: expectedSpiritsPerLap > 0 ? killsPerLap / expectedSpiritsPerLap : null,
     chancePerLap: logMissPerLap === 0 ? 0 : -Math.expm1(logMissPerLap),
     chanceForPlan: logMissPerLap === 0 ? 0 : -Math.expm1(laps * logMissPerLap),
   };
@@ -169,6 +173,10 @@ export function formatRouteChance(chance: number, digits: number): string {
   return Number(percent) === 100 ? ">99.99%" : `${percent}%`;
 }
 
+export function formatRouteFraction(denominator: number): string {
+  return `1 / ${denominator.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+}
+
 export function exportRevenantRouteText(baseUrl: string, route: RevenantRoute, petsOwned: number): string {
   const link = createRevenantRouteLink(baseUrl, route, petsOwned);
   const odds = revenantRouteOdds(petsOwned, route.entries.map(({ level, kills }) => ({ level, kills: Number(kills) })), Number(route.laps));
@@ -191,6 +199,7 @@ export function exportRevenantRouteText(baseUrl: string, route: RevenantRoute, p
     ...(odds ? [
       `Kills per lap: ${odds.killsPerLap.toLocaleString("en-US")}`,
       `Total kills: ${odds.totalKills.toLocaleString("en-US")}`,
+      `Overall drop fraction: approximately ${formatRouteFraction(odds.overallDenominator!)} per kill (weighted by kills of each revenant)`,
       `Chance of at least one spirit per lap: ${formatRouteChance(odds.chancePerLap, 4)}`,
       `Chance of at least one spirit within planned laps: ${formatRouteChance(odds.chanceForPlan, 2)}`,
     ] : ["All revenant pets unlocked; no next-spirit odds."]),

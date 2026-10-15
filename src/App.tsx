@@ -8,14 +8,12 @@ import { parsePlannedKills, addPlannedKills, MAX_PLANS } from "./planned-kills";
 import "./App.css";
 import { applyTheme, readTheme, themes } from "./themes";
 import RevenantSpiritCalc from "./RevenantSpiritCalc";
+import BossSelect from "./BossSelect";
 import { revenantSource } from "./revenants";
 import { archGlacorMaxPiles } from "./arch-glacor";
 const fmt = (n: number) => n.toLocaleString("en-US");
 const pct = (n: number) =>
   n > 0.99995 && n < 1 ? ">99.99%" : `${(n * 100).toFixed(2)}%`;
-const bossGroup = (boss: (typeof bosses)[number]) =>
-  boss.custom ? "Custom" : (boss.group ?? "Other bosses");
-const bossGroups = [...new Set(bosses.map(bossGroup))];
 const planColors = [
   "#67e8f9",
   "#fbbf24",
@@ -272,30 +270,15 @@ function App() {
                 <label htmlFor="boss">
                   Boss <span className="label-note">{bossCount} bosses</span>
                 </label>
-                <select
-                  id="boss"
+                <BossSelect
                   value={bossIndex}
-                  onChange={(e) => {
-                    const index = Number(e.target.value);
+                  onChange={(index) => {
                     setBossIndex(index);
                     setScenarioIndex(0);
                     changeDrop(bosses[index]?.scenarios[0].drops[0].name ?? "");
                     setAdvanced(!!bosses[index]?.custom);
                   }}
-                >
-                  <option value={-1}>Select a boss…</option>
-                  {bossGroups.map((group) => (
-                    <optgroup key={group} label={group}>
-                      {bosses.map((b, i) =>
-                        bossGroup(b) === group ? (
-                          <option value={i} key={b.name}>
-                            {b.name}
-                          </option>
-                        ) : null,
-                      )}
-                    </optgroup>
-                  ))}
-                </select>
+                />
                 {boss && scenario && (
                   <>
                     <div className="boss-card">

@@ -42,6 +42,7 @@ test('the linked tab renders a single pet selector and all revenant images and r
   assert.match(html, /1 in 2,678/)
   assert.match(html, /1 in 297/)
   assert.match(html, /0\.3367% per kill/)
+  assert.match(html, /Overall drop fraction: <strong>1 \/ 305\.74<\/strong> per kill/)
   for (const level of [16, 19, 22, 28]) assert.match(html, new RegExp(`Combat level ${level}`))
 })
 

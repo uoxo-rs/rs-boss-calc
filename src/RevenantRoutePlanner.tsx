@@ -4,6 +4,7 @@ import {
   createRevenantRouteLink,
   exportRevenantRouteText,
   formatRouteChance,
+  formatRouteFraction,
   maxRouteCount,
   maxRouteSteps,
   moveRouteStep,
@@ -187,6 +188,8 @@ export default function RevenantRoutePlanner({ petsOwned, shared }: Props) {
                 {odds ? (
                   <>
                     <strong className="revenant-route-percent">{formatRouteChance(odds.chancePerLap, 4)}</strong>
+                    <p>Overall drop fraction: <strong>{formatRouteFraction(odds.overallDenominator!)}</strong> per kill (approx.)</p>
+                    <span>Weighted by the number of kills of each revenant in your route.</span>
                     <p>About 1 in {(1 / odds.chancePerLap).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} laps</p>
                     <span>{formatCount(odds.killsPerLap)} {odds.killsPerLap === 1 ? "kill" : "kills"} per lap · At least one spirit</span>
                   </>
