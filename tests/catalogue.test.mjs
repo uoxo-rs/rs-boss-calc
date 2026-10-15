@@ -52,7 +52,7 @@ test('source-specific corrections avoid stale or luck-boosted calculator values'
   assert.equal(drop(find('Giant Mole').scenarios[0], 'Dragon 2h').denominator, 520)
   assert.equal(drop(find('Hermod, the Spirit of War').scenarios[0], 'Hermodic').denominator, 10)
   assert.equal(drop(find('Nex, Angel of Death').scenarios[0], 'Any intricate').denominator, 1024)
-  const glacor = find('Arch-Glacor').scenarios[1]
+  const glacor = find('Arch-Glacor').scenarios.find(s => s.name === 'Hard mode · 0% enrage · claim every kill')
   assert.equal(drop(glacor, 'Scripture').denominator, 1 / (.001525 * .38))
 })
 

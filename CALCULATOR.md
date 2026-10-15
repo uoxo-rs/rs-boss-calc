@@ -10,6 +10,10 @@ Zamorak presets cover repeat 0%, 20%, and 50% enrage kills, where unique-drop ba
 
 Encounter scenarios select modes, personal loot piles, group sizes, contribution bands, or fixed enrage as appropriate. Telos and hard mode Arch-Glacor presets assume claiming after every kill. Amascut uses the listed enrage presets. GWD2 presets assume the maximum reputation drop-rate bonus. No luck or pontifex ring boosts, minion drops, LootShare allocation, changing enrage, streaking, or special non-pet bad-luck mitigation are simulated.
 
+Arch-Glacor normal mode has separate controls for 0–5 enabled mechanics and the loot piles you receive per kill. 0–1 mechanics allow one pile; 2–5 allow 1–3 personal piles. These settings update drop availability, material rates and Gladys's pet rate. Pet rolls use the selected pile count, while the threshold advances every 500 kills. Selections are saved with the encounter scenario.
+
+When a pet is selected, the displayed fraction uses the threshold boost at the current completed kill count, capped at 10×, and keeps the numerator at 1. Multiple-pile encounters show this rate per roll; the drop outlook includes every pile. Custom rates and thresholds also apply to the displayed current fraction.
+
 Numerical presets for ordered staff/sword pieces, anima orbs, and AoD chests represent **any next piece/orb/chest**; these are not probabilities for completing a set or obtaining a particular position in a sequence. ROTS pets are purchased using malevolent energy and are not treated as random drops. Araxxi pet and leg-path prerequisites are shown beside the selected item. Only eligible kills should be entered.
 
 The target dropdown lists the union of drops across all scenarios for a boss, with unavailable items marked and compatible scenarios named. This makes Nakatra's hard-only Genesis shard visible even when normal mode is selected. Unmodelled targets (unknown rates, ownership rules, or sequences) are selectable and saved, but show an explanation instead of odds. See [DROP-AUDIT.md](DROP-AUDIT.md) for the 62-boss audit and remaining limitations.

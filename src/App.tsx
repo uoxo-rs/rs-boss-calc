@@ -9,6 +9,7 @@ import "./App.css";
 import { applyTheme, readTheme, themes } from "./themes";
 import RevenantSpiritCalc from "./RevenantSpiritCalc";
 import { revenantSource } from "./revenants";
+import { archGlacorMaxPiles } from "./arch-glacor";
 const fmt = (n: number) => n.toLocaleString("en-US");
 const pct = (n: number) =>
   n > 0.99995 && n < 1 ? ">99.99%" : `${(n * 100).toFixed(2)}%`;
@@ -70,6 +71,7 @@ function App() {
     (path) => !failedImages.includes(path),
   );
   const scenario = boss?.scenarios[scenarioIndex];
+  const archGlacor = scenario?.archGlacor;
   const targets = boss && scenario ? dropOptions(boss, scenario) : [];
   const target = targets.find((d) => d.name === dropName);
   const drop = target?.drop;
@@ -106,9 +108,8 @@ function App() {
       ? selectedPlan
       : (plans?.at(-1) ?? 0);
   const kc = Number(current);
-  const valid =
+  const validRate =
     !!drop &&
-    !!plans &&
     current !== "" &&
     Number.isInteger(kc) &&
     kc >= 0 &&
@@ -119,6 +120,12 @@ function App() {
     Number.isInteger(threshold) &&
     threshold >= 0 &&
     threshold <= 10000000;
+  const valid = validRate && !!plans;
+  const showCurrentRate = !!drop?.threshold || threshold > 0;
+  // Keep the fraction per roll; the outlook separately includes all loot piles.
+  const displayedDenominator = showCurrentRate
+    ? validRate ? 1 / probability(1, denominator, kc, threshold) : null
+    : denominator;
   const chance = valid ? probability(n, denominator, kc, threshold, rolls) : 0;
   const dryness = valid ? dryStreak(kc, denominator, threshold, rolls) : null;
   const comparisons = valid
@@ -153,6 +160,19 @@ function App() {
     setCustomRate("");
     setCustomThreshold("");
     setHover(null);
+  };
+  const changeScenario = (index: number) => {
+    setScenarioIndex(index);
+    setCustomRate("");
+    setCustomThreshold("");
+    setHover(null);
+  };
+  const changeArchGlacor = (mechanics: number, lootPiles: number) => {
+    const piles = Math.min(lootPiles, archGlacorMaxPiles(mechanics));
+    const index = boss.scenarios.findIndex(
+      (s) => s.archGlacor?.mechanics === mechanics && s.archGlacor.lootPiles === piles,
+    );
+    if (index >= 0) changeScenario(index);
   };
   const reset = () => {
     setBossIndex(-1);
@@ -314,20 +334,48 @@ function App() {
                         <label htmlFor="scenario">Encounter scenario</label>
                         <select
                           id="scenario"
-                          value={scenarioIndex}
-                          onChange={(e) => {
-                            setScenarioIndex(Number(e.target.value));
-                            setCustomRate("");
-                            setCustomThreshold("");
-                            setHover(null);
-                          }}
+                          value={archGlacor ? 0 : scenarioIndex}
+                          onChange={(e) => changeScenario(Number(e.target.value))}
                         >
-                          {boss.scenarios.map((s, i) => (
+                          {boss.scenarios.map((s, i) => !s.archGlacor || i === 0 ? (
                             <option value={i} key={s.name}>
-                              {s.name}
+                              {s.archGlacor ? "Normal mode" : s.name}
+                            </option>
+                          ) : null)}
+                        </select>
+                      </>
+                    )}
+                    {archGlacor && (
+                      <>
+                        <label htmlFor="arch-glacor-mechanics">Mechanics enabled</label>
+                        <select
+                          id="arch-glacor-mechanics"
+                          value={archGlacor.mechanics}
+                          onChange={(e) => changeArchGlacor(Number(e.target.value), archGlacor.lootPiles)}
+                        >
+                          {[0, 1, 2, 3, 4, 5].map((count) => (
+                            <option key={count} value={count}>
+                              {count} {count === 1 ? "mechanic" : "mechanics"}
                             </option>
                           ))}
                         </select>
+                        <label htmlFor="arch-glacor-piles">Your loot piles per kill</label>
+                        <select
+                          id="arch-glacor-piles"
+                          value={archGlacor.lootPiles}
+                          aria-describedby="arch-glacor-piles-help"
+                          onChange={(e) => changeArchGlacor(archGlacor.mechanics, Number(e.target.value))}
+                        >
+                          {Array.from({ length: archGlacorMaxPiles(archGlacor.mechanics) }, (_, i) => i + 1).map((count) => (
+                            <option key={count} value={count}>
+                              {count} loot {count === 1 ? "pile" : "piles"}
+                            </option>
+                          ))}
+                        </select>
+                        <p id="arch-glacor-piles-help" className="field-help">
+                          0–1 mechanics award one loot pile. With 2–5 mechanics,
+                          choose the 1–3 piles you personally receive per kill.
+                        </p>
                       </>
                     )}
                     {scenario.note && (
@@ -377,13 +425,23 @@ function App() {
                         <div className="rate-line">
                           <span className="diamond">◇</span>
                           <span>
-                            {customRate
-                              ? "Custom rate / kill"
-                              : rolls > 1
-                                ? "Base rate / roll"
-                                : "Base rate / kill"}
+                            {showCurrentRate
+                              ? customRate
+                                ? "Current custom rate / kill"
+                                : rolls > 1
+                                  ? "Current rate / roll"
+                                  : "Current rate / kill"
+                              : customRate
+                                ? "Custom rate / kill"
+                                : rolls > 1
+                                  ? "Base rate / roll"
+                                  : "Base rate / kill"}
                           </span>
-                          <strong>1 / {fmt(denominator)}</strong>
+                          <strong aria-live="polite">
+                            {displayedDenominator === null
+                              ? "—"
+                              : `1 / ${fmt(displayedDenominator)}`}
+                          </strong>
                           <a
                             href={wikiUrl(boss?.source ?? "Bosses")}
                             target="_blank"
@@ -393,6 +451,13 @@ function App() {
                             ↗
                           </a>
                         </div>
+                        {showCurrentRate && (
+                          <p className="field-help">
+                            {validRate
+                              ? `For your next ${rolls > 1 ? "loot roll" : "kill"} at ${fmt(kc)} completed kills.${threshold > 0 ? " Includes your pet threshold boost." : ""}`
+                              : "Enter a valid current kill count, rate and threshold to see current odds."}
+                          </p>
+                        )}
                         {rolls > 1 && (
                           <p className="field-help">
                             {rolls} independent rolls per kill are included. Pet

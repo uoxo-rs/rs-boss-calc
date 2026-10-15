@@ -272,26 +272,13 @@ export function expandBossDrops(boss: Boss): Boss {
             "One tertiary roll per kill; contribution-based equipment rolls do not multiply this rate.",
           ),
         );
-      if (boss.name === "Arch-Glacor") {
-        if (!hard) {
-          extra.push(
-            ...items(25, ["Manuscript of Wen"], "Three normal-mode rolls.", 3),
-          );
-          extra.push(
-            ...items(
-              1 / (0.09 * 0.965 + (0.005 * 32) / 80),
-              ["Glacor remnants"],
-              "Sums both remnant slots in the five-mechanic normal-mode table; chance of any stack across three rolls.",
-              3,
-            ),
-          );
-        } else
-          unmodelled.push(
-            ...unknown(
-              ["Manuscript of Wen", "Glacor remnants"],
-              "Hard-mode material and manuscript rewards depend on reward-table and streak mechanics that are not modelled for this target.",
-            ),
-          );
+      if (boss.name === "Arch-Glacor" && hard) {
+        unmodelled.push(
+          ...unknown(
+            ["Manuscript of Wen", "Glacor remnants"],
+            "Hard-mode material and manuscript rewards depend on reward-table and streak mechanics that are not modelled for this target.",
+          ),
+        );
       }
       if (boss.name === "The Ambassador") {
         extra.push(

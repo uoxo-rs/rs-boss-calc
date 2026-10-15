@@ -77,3 +77,84 @@ test('an unfinished comparison list shows validation instead of misleading parti
   assert.match(html, /Enter up to 10 comma-separated planned kill counts/)
   assert.doesNotMatch(html, /class="plan-table"|chance of at least one drop/)
 })
+
+test('Arch-Glacor renders separate mechanics and pile controls and uses both for pet odds', () => {
+  const html = render({ boss: 'Arch-Glacor', scenario: 'Normal mode · 2 mechanics · 2 loot piles', drop: 'Gladys · Pet', kills: '100', current: '499' })
+  assert.match(html, /id="arch-glacor-mechanics"><option value="0">0 mechanics<\/option><option value="1">1 mechanic<\/option><option value="2" selected="">2 mechanics/)
+  assert.match(html, /id="arch-glacor-piles" aria-describedby="arch-glacor-piles-help"><option value="1">1 loot pile<\/option><option value="2" selected="">2 loot piles<\/option><option value="3">3 loot piles/)
+  assert.match(html, /1 \/ 12,000/)
+  assert.match(html, /2 independent rolls per kill/)
+  const expected = ((1 - (1 - 1 / 12000) ** 2 * (1 - 2 / 12000) ** 198) * 100).toFixed(2)
+  assert.ok(html.includes(`<div class="big-percent">${expected}%</div>`))
+  const scenarios = html.match(/<select id="scenario">(.*?)<\/select>/)[1]
+  assert.equal((scenarios.match(/<option/g) ?? []).length, 7)
+  assert.match(scenarios, /<option value="0" selected="">Normal mode<\/option>/)
+})
+
+test('zero mechanics restricts piles to one and explains unavailable unique drops', () => {
+  const html = render({ boss: 'Arch-Glacor', scenario: 'Normal mode · 0 mechanics · 1 loot pile', drop: 'Scripture of Wen' })
+  const piles = html.match(/<select id="arch-glacor-piles"[^>]*>(.*?)<\/select>/)[1]
+  assert.equal(piles, '<option value="1" selected="">1 loot pile</option>')
+  assert.match(html, /Scripture of Wen — unavailable in this scenario/)
+  assert.match(html, /Drop unavailable in this encounter/)
+  assert.doesNotMatch(html, /chance of at least one drop/)
+})
+
+test('Arch-Glacor custom per-kill rates do not get multiplied by personal piles', () => {
+  const html = render({ boss: 'Arch-Glacor', scenario: 'Normal mode · 5 mechanics · 3 loot piles', drop: 'Gladys · Pet', kills: '1', customRate: '100', customThreshold: '0' })
+  assert.match(html, /Current custom rate \/ kill/)
+  assert.match(html, /<div class="big-percent">1\.00%<\/div>/)
+  assert.doesNotMatch(html, /3 independent rolls per kill/)
+})
+
+test('hard mode omits normal-mode configuration and retains its pet odds', () => {
+  const html = render({ boss: 'Arch-Glacor', scenario: 'Hard mode · 0% enrage · claim every kill', drop: 'Gladys · Pet', kills: '1' })
+  assert.doesNotMatch(html, /id="arch-glacor-mechanics"|id="arch-glacor-piles"/)
+  assert.match(html, /<div class="big-percent">0\.10%<\/div>/)
+})
+
+test('pet fractions use current KC at threshold boundaries and keep a numerator of one', () => {
+  for (const [current, denominator] of [['0', '3,000'], ['499', '3,000'], ['500', '1,500'], ['1000', '1,000'], ['4500', '300'], ['100000', '300']]) {
+    const html = render({ boss: 'Arch-Glacor', scenario: 'Normal mode · 5 mechanics · 3 loot piles', drop: 'Gladys · Pet', current })
+    assert.match(html, /Current rate \/ roll/)
+    assert.ok(html.includes(`<strong aria-live="polite">1 / ${denominator}</strong>`))
+    assert.match(html, /3 independent rolls per kill/)
+  }
+})
+
+test('single-roll pets display fractional denominators without changing their calculated odds', () => {
+  const html = render({ boss: 'Arch-Glacor', scenario: 'Hard mode · 0% enrage · claim every kill', drop: 'Gladys · Pet', current: '1000', kills: '1' })
+  assert.match(html, /Current rate \/ kill/)
+  assert.match(html, /<strong aria-live="polite">1 \/ 333\.333<\/strong>/)
+  assert.match(html, /For your next kill at 1,000 completed kills/)
+  assert.match(html, /<div class="big-percent">0\.30%<\/div>/)
+})
+
+test('pet fractions respect custom thresholds and cap the displayed chance at one', () => {
+  for (const [customRate, customThreshold, expected] of [['1200', '100', '200'], ['1200', '0', '1,200'], ['2', '100', '1']]) {
+    const html = render({ boss: 'Arch-Glacor', scenario: 'Normal mode · 5 mechanics · 3 loot piles', drop: 'Gladys · Pet', current: '500', customRate, customThreshold })
+    assert.match(html, /Current custom rate \/ kill/)
+    assert.ok(html.includes(`<strong aria-live="polite">1 / ${expected}</strong>`))
+  }
+})
+
+test('current pet fractions remain available while planned kills are being edited', () => {
+  const html = render({ boss: 'Arch-Glacor', scenario: 'Normal mode · 5 mechanics · 3 loot piles', drop: 'Gladys · Pet', current: '500', kills: '50,' })
+  assert.match(html, /<strong aria-live="polite">1 \/ 1,500<\/strong>/)
+  assert.match(html, /Enter up to 10 comma-separated planned kill counts/)
+})
+
+test('invalid current KC does not display a misleading pet fraction', () => {
+  for (const current of ['', '-1', '0.5', '10000001', 'invalid']) {
+    const html = render({ boss: 'Arch-Glacor', scenario: 'Normal mode · 5 mechanics · 3 loot piles', drop: 'Gladys · Pet', current })
+    assert.match(html, /<strong aria-live="polite">—<\/strong>/)
+    assert.match(html, /Enter a valid current kill count, rate and threshold to see current odds/)
+  }
+})
+
+test('fixed drops retain their base rate regardless of current KC', () => {
+  const html = render({ boss: 'Arch-Glacor', scenario: 'Normal mode · 5 mechanics · 3 loot piles', drop: 'Scripture of Wen', current: '10000' })
+  assert.match(html, /Base rate \/ roll/)
+  assert.match(html, /<strong aria-live="polite">1 \/ 500<\/strong>/)
+  assert.doesNotMatch(html, /Current rate \/ roll|Includes your pet threshold boost/)
+})

@@ -4,6 +4,7 @@
  */
 import { additionalBosses } from "./boss-groups.ts";
 import { expandBossDrops } from "./extra-drops.ts";
+import { archGlacorNormalScenarios } from "./arch-glacor.ts";
 
 export type Drop = {
   name: string;
@@ -16,6 +17,7 @@ export type UnmodelledDrop = { name: string; note: string };
 export type Scenario = {
   name: string;
   drops: Drop[];
+  archGlacor?: { mechanics: number; lootPiles: number };
   unmodelledDrops?: UnmodelledDrop[];
   note?: string;
 };
@@ -356,15 +358,7 @@ const telos = boss(
 );
 
 const archGlacor = boss("Arch-Glacor", "Arch-Glacor", "Glacor Front", [
-  scenario(
-    "Normal mode · 5 mechanics · 3 loot piles",
-    [
-      ...items(500, ["Leng artefact", "Scripture of Wen"], { rolls: 3 }),
-      ...items(1 / (0.09 * 0.035), ["Dark nilas"], { rolls: 3 }),
-      pet("Gladys", 3000, 500),
-    ],
-    "Full 5-mechanic normal mode and all 3 loot piles. Frozen cores do not drop in normal mode; pet rolls once per kill.",
-  ),
+  ...archGlacorNormalScenarios,
   ...[0, 100, 500, 1000, 2000, 4000].map((enrage) => {
     const unique = (1525 + 15 * enrage) / 1000000;
     return scenario(
